@@ -1,0 +1,16 @@
+let
+    MyToken = let
+        GetJson = Web.Contents("https://api.acme.com/api/oauth",
+        [Headers = [#"Accept"="application/json",#"Content-Type"="application/json"],
+        Content = Text.ToBinary("{""username"": "”demoaccount"" ,""password"":"”HardToGuessPassWordHere"" }")]),
+        FormatAsJson = Json.Document(GetJson),
+        token = FormatAsJson[access_token],
+        access_token=token
+    in
+        access_token,
+    GetCSVData = Web.Contents( "https://api.acme.com/api/reporting/events?y=2019&m=04&d=01",
+    [Headers=[Authorization="Bearer "&MyToken,ContentType="application/json",#"Accept"="application/csv"],
+    Content = Text.ToBinary("{""endpoint"": "”events""}")]),
+    Result = Table.PromoteHeaders(Csv.Document(GetCSVData))
+in
+    Result
